@@ -49,8 +49,14 @@ Ran pytest tests/, all 5 tests still pass, but none of them actually call get_wa
 
 ## Comment 6 — Rebase
 **What conflicted:**
+main had a "refactor: migrate film IDs from integer to UUID" commit that changed Film.id from an autoincrement integer to a UUID string (db.String(36)), and updated CollectionEntry.film_id to match. My branch's watchlist code was written assuming integer film IDs. Since my original watchlist commit never actually touched models.py (turns out WatchlistEntry was never committed in the first place, just present locally), there was no line-level overlap for git to flag as a conflict — it just silently dropped WatchlistEntry out of models.py during the replay while services/watchlist_service.py and the tests still imported and depended on it. That's a semantic conflict, not a textual one, so `git rebase` didn't stop for it — I had to go find it myself.
+
 **How I resolved it:**
+
+Once the rebase finished cleanly I checked the resulting models.py and noticed WatchlistEntry wasn't there at all. I re-added the WatchlistEntry model, this time with film_id as db.String(36) with a ForeignKey to film.id, matching the now-UUID CollectionEntry pattern instead of the old integer version. Then I went through the rest of the watchlist code for leftover integer-ID assumptions: updated the film_id docstring in add_to_watchlist() from "(int)... pre-refactor" to "(str): UUID of the film", updated the POST body example in routes/watchlist/watchlist.py from {"film_id": <int>} to {"film_id": "<uuid>"} to match collection.py's convention, and changed the fake_film_id in test_watchlist.py from the integer 99999 to a fake UUID string, since it's asserting against a UUID column now.
+
 **How I verified no conflict remains:**
+Ran `git status` after the rebase finished — clean working tree, no unmerged paths. Ran `git log --merges main..HEAD`, which came back empty, confirming the rebase didn't leave any merge commits in the branch's own history (the one merge commit that shows up in `git log --graph`, bbe206c, was already part of main before my branch even diverged — rebase doesn't rewrite that, it's expected). Grepped the repo for any remaining int/film_id mismatches and found nothing left over. Ran pytest tests/ — all 5 tests pass.
 
 ## PR Description
 <!-- Written at the end — feature overview, design decisions, manual testing steps -->
