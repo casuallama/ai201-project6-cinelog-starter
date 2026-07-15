@@ -26,13 +26,26 @@ Ran pytest tests/test_watchlist.py -v and it passed. Right now that's the only t
 
 ## Comment 4 — Default visibility
 **My position:**
+I'd keep public=True as the default.
+
 **Reasoning:**
+The whole point of a watchlist is other people finding out what you want to watch, promoting the social aspect of creating a watchlist. If it defaulted to private, most users would never touch the flag and the feature would basically behave like a private list with a public setting that won't be changed, which defeats the purpose of adding "public" as a field at all. I would choose for the list to actually be seen and used by other people without the user having to change extra settings.
+
 **Tradeoff acknowledged:**
+The tradeoff is that the public setting may not be desired by all users. Some people may want to have their list private for various reasons, such as keeping their interests to themselves, embarassing watchlist entries, or just general privacy. Defaulting to public means that privacy protection only happens if the user remembers to opt out, and most won't. 
 
 ## Comment 5 — Sort order
 **My position:**
+Agreed with the maintainer — changed get_watchlist() in services/watchlist_service.py to sort by date_added descending (newest first) instead of alphabetical by title.
+
 **Reasoning:**
+The maintainer's point was that most users want to see what they added recently, and I think that's right for a watchlist specifically. A watchlist is a working list you keep adding to over time — when you open it you're usually checking "what did I just save" or picking up where you left off, not hunting for a specific title by name. That's a "recency" use case, not a "lookup" use case. It also brings the watchlist in line with get_collection() in collection_service.py, which already sorts by date_added descending — having the two endpoints sort by completely different logic (one recency, one alphabetical) for no stated reason looked like an oversight rather than a decision, so this also makes the app consistent.
+
 **Engagement with reviewer's point:**
+I don't think alphabetical is wrong, exactly — it's genuinely better if someone's watchlist gets long and they're trying to find one specific film. But that's a lookup problem, and the maintainer's framing is about the default/common case, which is recency, so I'm going with their preference rather than treating this as a real disagreement. If lookup-by-title turns out to matter later, that's a case for a sort query param (?sort=title vs ?sort=date_added) rather than picking alphabetical as the one default — but that's out of scope here since the ask was to pick and document a default, not build configurable sorting.
+
+**How I verified:**
+Ran pytest tests/, all 5 tests still pass, but none of them actually call get_watchlist() so this isn't real coverage of the sort order. Tried to manually verify get_watchlist() end to end with a throwaway script and hit the AttributeError above, which means I can't fully verify the new sort order works until that's fixed.
 
 ## Comment 6 — Rebase
 **What conflicted:**
