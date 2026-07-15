@@ -19,8 +19,10 @@ Ran pytest tests/ again, still passing, but that's not really a real test of thi
 
 ## Comment 3 — Missing test
 **What I did:**
+Created tests/test_watchlist.py since it didn't exist before. Copied the app/sample_user/sample_film fixtures straight from test_collection.py so the setup matches the rest of the codebase. Wrote test_add_to_watchlist_nonexistent_film_raises, the watchlist equivalent of test_add_to_collection_nonexistent_film_raises — it asserts add_to_watchlist() raises FilmNotFoundError when given a film_id that isn't in the db. Used an int for the fake id (99999) instead of a UUID since Film.id is still an integer on this branch, not a UUID yet.
 
 **How I verified:**
+Ran pytest tests/test_watchlist.py -v and it passed. Right now that's the only test in the file CONTRIBUTING.md says new service functions need a happy path test and a duplicate/conflict test too, so this file is still incomplete against that bar. I left the imports for get_watchlist and AlreadyInWatchlistError in there even though they're unused yet, planning to add those tests next.
 
 ## Comment 4 — Default visibility
 **My position:**
